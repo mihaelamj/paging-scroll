@@ -24,6 +24,9 @@ class PagingScrollView : UIView {
   public lazy var pageControl: UIPageControl = {
     let pc = UIPageControl()
     pc.accessibilityLabel = "Page Control"
+    pc.tintColor = UIColor.red
+    pc.pageIndicatorTintColor = UIColor.black
+    pc.currentPageIndicatorTintColor = UIColor.green
     return pc
   }()
   
@@ -65,6 +68,13 @@ class PagingScrollView : UIView {
     self.addConstraint(NSLayoutConstraint(item: pageControl, attribute: .leading, relatedBy: .equal, toItem: self, attribute: .leading, multiplier: 1, constant: pageGap))
     self.addConstraint(NSLayoutConstraint(item: pageControl, attribute: .bottom, relatedBy: .equal, toItem: self, attribute: .bottom, multiplier: 1, constant: -pageGap))
     self.addConstraint(NSLayoutConstraint(item: pageControl, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute,multiplier: 1, constant: 30))
+    pageControl.addTarget(self, action: #selector(self.changePage(sender:)), for: UIControlEvents.valueChanged)
+  }
+  
+  @objc func changePage(sender: UIPageControl) {
+    
+    let x = CGFloat(pageControl.currentPage) * scrollView.frame.size.width
+    scrollView.setContentOffset(CGPoint(x: x,y :0), animated: true)
   }
   
   private func alignAll(view: UIView, superview: UIView) {
@@ -75,15 +85,6 @@ class PagingScrollView : UIView {
   }
   
   private func alignPagesHorizontally(pages: [UIView]) {
-
-    //[page1(==parent)][page2(==parent)][page3(==parent)]
-    //[page1(==parent)][page2(==parent)][page3(==parent)]
-    
-    //V:|[page1(==parent)]|"
-    //V:|[page1(==parent)]|"
-    
-    //"H:|[page1(==view)][page2(==view)][page3(==view)][page4(==view)][page5(==view)]|"
-    //"H:|[page1(==parent)][page2(==parent)][page3(==parent)]|"
     
     var horString = ""
     var vertString = ""
@@ -128,8 +129,11 @@ class PagingScrollView : UIView {
       fatalError("Pages may be added only once!")
     }
     
+    var index = 0
     for page in pages {
       page.tag = pageTag
+      index += 1
+      page.accessibilityLabel = "page \(index)"
       page.translatesAutoresizingMaskIntoConstraints = false
       scrollView.addSubview(page)
     }
@@ -143,7 +147,6 @@ class PagingScrollView : UIView {
     self.bringSubview(toFront: pageControl)
     pageControl.numberOfPages = pages.count
   }
-  
 }
 
 //MARK: Extensions -
@@ -154,5 +157,5 @@ extension PagingScrollView: UIScrollViewDelegate {
     let pageFraction = scrollView.contentOffset.x / pageWidth
     pageControl.currentPage = Int(round(pageFraction))
   }
-  
 }
+
